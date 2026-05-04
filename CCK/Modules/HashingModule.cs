@@ -16,11 +16,11 @@ namespace Nox.CCK.Scripting.Modules {
 	public static class HashingModule {
 		public static readonly IScriptingModuleDefinition Module =
 			ScriptingModuleBuilder.Create("hashing")
-				.AddMethod("sha256",  args => (object)Sha256(ToBytes(args, 0)))
-				.AddMethod("sha512",  args => (object)Sha512(ToBytes(args, 0)))
-				.AddMethod("md5",     args => (object)Md5(ToBytes(args, 0)))
-				.AddMethod("crc32",   args => (object)Hash.CRC32(ToBytes(args, 0)))
-				.AddMethod("crc64",   args => (object)Hash.CRC64(ToBytes(args, 0)))
+				.AddMethod("sha256", args => (object)Sha256(ToBytes(args, 0)))
+				.AddMethod("sha512", args => (object)Sha512(ToBytes(args, 0)))
+				.AddMethod("md5", args => (object)Md5(ToBytes(args, 0)))
+				.AddMethod("crc32", args => (object)Hash.CRC32(ToBytes(args, 0)))
+				.AddMethod("crc64", args => (object)Hash.CRC64(ToBytes(args, 0)))
 				.Build();
 
 		// ── Helpers ──────────────────────────────────────────────────────────
@@ -28,7 +28,8 @@ namespace Nox.CCK.Scripting.Modules {
 		private static byte[] ToBytes(object[] args, int index) {
 			if (index >= args.Length || args[index] == null)
 				return Array.Empty<byte>();
-			if (args[index] is byte[] b) return b;
+			if (args[index] is byte[] b)
+				return b;
 			return System.Text.Encoding.UTF8.GetBytes(args[index].ToString());
 		}
 

@@ -37,7 +37,8 @@ namespace Nox.Scripting.Runtime {
 			_modules.Add(definition);
 
 			foreach (var backend in _backends) {
-				if (!ModuleMatchesBackend(definition, backend)) continue;
+				if (!ModuleMatchesBackend(definition, backend))
+					continue;
 				backend.OnModuleRegistered(definition);
 			}
 			OnModuleRegistered.Invoke(definition);
@@ -78,7 +79,8 @@ namespace Nox.Scripting.Runtime {
 
 			// Catch the backend up with already-registered modules and converters.
 			foreach (var module in _modules) {
-				if (!ModuleMatchesBackend(module, backend)) continue;
+				if (!ModuleMatchesBackend(module, backend))
+					continue;
 				backend.OnModuleRegistered(module);
 			}
 
@@ -98,8 +100,8 @@ namespace Nox.Scripting.Runtime {
 		/// A backend with no tags accepts all modules.
 		/// </summary>
 		private static bool ModuleMatchesBackend(IScriptingModuleDefinition module, IScriptingBackend backend) {
-			if (module.Tags.Count == 0)  return true;
-			if (backend.Tags.Count == 0) return true;
+			if (module.Tags.Count == 0 || backend.Tags.Count == 0)
+				return true;
 			return module.Tags.Any(t => backend.Tags.Contains(t));
 		}
 
@@ -107,16 +109,16 @@ namespace Nox.Scripting.Runtime {
 
 		public void OnInitializeMain(IMainModCoreAPI api) {
 			Instance = this;
-			
+
 			foreach (var converter in UnityConverters.All)
 				RegisterConverter(converter);
-			
+
 			foreach (var converter in BufferConverter.All)
 				RegisterConverter(converter);
-			
+
 			foreach (var converter in RsaConverter.All)
 				RegisterConverter(converter);
-			
+
 			RegisterModule(HashingModule.Module);
 			RegisterModule(CryptoModule.Module);
 		}

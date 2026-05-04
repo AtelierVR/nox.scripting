@@ -237,8 +237,8 @@ namespace Nox.CCK.Scripting {
 			public Func<IScriptingContext, object[], Task<object>> AsyncHandler { get; }
 
 			public DefaultDef(
-				Func<IScriptingContext, object>              getter,
-				Func<IScriptingContext, object[], object>    handler,
+				Func<IScriptingContext, object>                 getter,
+				Func<IScriptingContext, object[], object>       handler,
 				Func<IScriptingContext, object[], Task<object>> asyncHandler
 			) {
 				Getter       = getter;

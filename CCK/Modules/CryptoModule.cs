@@ -29,7 +29,7 @@ namespace Nox.CCK.Scripting.Modules {
 				// ── Random ───────────────────────────────────────────────────
 				.AddMethod("randomBytes", args => {
 					var n      = args.Length > 0 && args[0] != null ? Convert.ToInt32(args[0]) : 16;
-					var buffer = new byte[Math.Max(0, n)];
+					var buffer = new byte[ Math.Max(0, n) ];
 					RandomNumberGenerator.Fill(buffer);
 					return (object)buffer;
 				})
@@ -42,23 +42,24 @@ namespace Nox.CCK.Scripting.Modules {
 					return (object)ToHex(HmacSha256(key, data));
 				})
 
-                // ── RSA (asymmetric) ─────────────────────────────────────────
-                .AddMethod("createKeyPair", args => {
-                    var keySize = args.Length > 0 && args[0] != null ? Convert.ToInt32(args[0]) : 4096;
-                    var rsa     = Crypto.CreateKeyPair(keySize);
-                    return (object)new Dictionary<string, object> {
-                        ["publicKey"]  = new RsaPublicKey(Crypto.ExportPublicKeyToDer(rsa)),
-                        ["privateKey"] = new RsaPrivateKey(Crypto.ExportPrivateKeyToDer(rsa))
-                    };
-                })
-
+				// ── RSA (asymmetric) ─────────────────────────────────────────
+				.AddMethod("createKeyPair", args => {
+					var keySize = args.Length > 0 && args[0] != null ? Convert.ToInt32(args[0]) : 4096;
+					var rsa     = Crypto.CreateKeyPair(keySize);
+					return (object)new Dictionary<string, object> {
+						["publicKey"]  = new RsaPublicKey(Crypto.ExportPublicKeyToDer(rsa)),
+						["privateKey"] = new RsaPrivateKey(Crypto.ExportPrivateKeyToDer(rsa))
+					};
+				})
 				.Build();
 
 		// ── Helpers ──────────────────────────────────────────────────────────
 
 		private static byte[] ToBytes(object[] args, int index) {
-			if (index >= args.Length || args[index] == null) return Array.Empty<byte>();
-			if (args[index] is byte[] b) return b;
+			if (index >= args.Length || args[index] == null)
+				return Array.Empty<byte>();
+			if (args[index] is byte[] b)
+				return b;
 			return Encoding.UTF8.GetBytes(args[index].ToString());
 		}
 
@@ -71,4 +72,3 @@ namespace Nox.CCK.Scripting.Modules {
 		}
 	}
 }
-

@@ -20,11 +20,11 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector2 =
 			ScriptingTypeConverterBuilder<Vector2>.Create()
-				.AddProperty("x",            v => (object)v.x)
-				.AddProperty("y",            v => (object)v.y)
-				.AddProperty("magnitude",    v => (object)v.magnitude)
+				.AddProperty("x", v => (object)v.x)
+				.AddProperty("y", v => (object)v.y)
+				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized",   v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized)
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new Vector2(
 					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
@@ -36,12 +36,12 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector3 =
 			ScriptingTypeConverterBuilder<Vector3>.Create()
-				.AddProperty("x",            v => (object)v.x)
-				.AddProperty("y",            v => (object)v.y)
-				.AddProperty("z",            v => (object)v.z)
-				.AddProperty("magnitude",    v => (object)v.magnitude)
+				.AddProperty("x", v => (object)v.x)
+				.AddProperty("y", v => (object)v.y)
+				.AddProperty("z", v => (object)v.z)
+				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized",   v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized)
 				.AddMethod("toString", v => (object)v.ToString())
 				.AddMethod("cross", (ctx, v, args) =>
 					(object)UnityEngine.Vector3.Cross(v,
@@ -64,13 +64,13 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector4 =
 			ScriptingTypeConverterBuilder<Vector4>.Create()
-				.AddProperty("x",            v => (object)v.x)
-				.AddProperty("y",            v => (object)v.y)
-				.AddProperty("z",            v => (object)v.z)
-				.AddProperty("w",            v => (object)v.w)
-				.AddProperty("magnitude",    v => (object)v.magnitude)
+				.AddProperty("x", v => (object)v.x)
+				.AddProperty("y", v => (object)v.y)
+				.AddProperty("z", v => (object)v.z)
+				.AddProperty("w", v => (object)v.w)
+				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized",   v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized)
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Vector4(
 					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
@@ -84,12 +84,12 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Quaternion =
 			ScriptingTypeConverterBuilder<Quaternion>.Create()
-				.AddProperty("x",           v => (object)v.x)
-				.AddProperty("y",           v => (object)v.y)
-				.AddProperty("z",           v => (object)v.z)
-				.AddProperty("w",           v => (object)v.w)
+				.AddProperty("x", v => (object)v.x)
+				.AddProperty("y", v => (object)v.y)
+				.AddProperty("z", v => (object)v.z)
+				.AddProperty("w", v => (object)v.w)
 				.AddProperty("eulerAngles", v => (object)v.eulerAngles)
-				.AddProperty("normalized",  v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized)
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Quaternion(
 					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
@@ -103,13 +103,13 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Color =
 			ScriptingTypeConverterBuilder<Color>.Create()
-				.AddProperty("r",         v => (object)v.r)
-				.AddProperty("g",         v => (object)v.g)
-				.AddProperty("b",         v => (object)v.b)
-				.AddProperty("a",         v => (object)v.a)
+				.AddProperty("r", v => (object)v.r)
+				.AddProperty("g", v => (object)v.g)
+				.AddProperty("b", v => (object)v.b)
+				.AddProperty("a", v => (object)v.a)
 				.AddProperty("grayscale", v => (object)v.grayscale)
-				.AddProperty("linear",    v => (object)v.linear)
-				.AddProperty("gamma",     v => (object)v.gamma)
+				.AddProperty("linear", v => (object)v.linear)
+				.AddProperty("gamma", v => (object)v.gamma)
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Color(
 					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
@@ -132,10 +132,11 @@ namespace Nox.CCK.Scripting.Converters {
 				.AddProperty("layer",
 					getter: v => (object)v.layer,
 					setter: (v, val) => v.layer = Convert.ToInt32(val))
-				.AddProperty("activeSelf",        v => (object)v.activeSelf)
+				.AddProperty("activeSelf", v => (object)v.activeSelf)
 				.AddProperty("activeInHierarchy", v => (object)v.activeInHierarchy)
 				.AddMethod("setActive", (v, args) => {
-					if (args.Length > 0) v.SetActive(Convert.ToBoolean(args[0]));
+					if (args.Length > 0)
+						v.SetActive(Convert.ToBoolean(args[0]));
 					return null;
 				})
 				.AddMethod("toString", v => (object)v.ToString())
@@ -155,16 +156,16 @@ namespace Nox.CCK.Scripting.Converters {
 					setter: (v, val) => v.tag = val?.ToString() ?? "Untagged")
 				.AddProperty("position",
 					getter: (ctx, t) => (object)t.position,
-					setter: (ctx, t, val) => t.position      = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
+					setter: (ctx, t, val) => t.position = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
 				.AddProperty("localPosition",
 					getter: (ctx, t) => (object)t.localPosition,
 					setter: (ctx, t, val) => t.localPosition = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
 				.AddProperty("localScale",
 					getter: (ctx, t) => (object)t.localScale,
-					setter: (ctx, t, val) => t.localScale    = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
+					setter: (ctx, t, val) => t.localScale = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
 				.AddProperty("rotation",
 					getter: (ctx, t) => (object)t.rotation,
-					setter: (ctx, t, val) => t.rotation      = (UnityEngine.Quaternion)ctx.FromScript(val, typeof(UnityEngine.Quaternion)))
+					setter: (ctx, t, val) => t.rotation = (UnityEngine.Quaternion)ctx.FromScript(val, typeof(UnityEngine.Quaternion)))
 				.AddProperty("localRotation",
 					getter: (ctx, t) => (object)t.localRotation,
 					setter: (ctx, t, val) => t.localRotation = (UnityEngine.Quaternion)ctx.FromScript(val, typeof(UnityEngine.Quaternion)))
@@ -183,6 +184,6 @@ namespace Nox.CCK.Scripting.Converters {
 			Color,
 			GameObject,
 			Transform,
-			};
+		};
 	}
 }

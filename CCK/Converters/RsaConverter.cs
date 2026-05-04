@@ -15,7 +15,7 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public RsaPrivateKey(byte[] der)
 			=> _der = der ?? throw new ArgumentNullException(nameof(der));
-		
+
 		internal RSA ToRSA()
 			=> Crypto.ImportPrivateKeyFromDer(_der);
 
@@ -33,7 +33,7 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public RsaPublicKey(byte[] der)
 			=> _der = der ?? throw new ArgumentNullException(nameof(der));
-		
+
 		/// <summary>Reconstruct an RSA instance from the stored DER.</summary>
 		internal RSA ToRSA()
 			=> Crypto.ImportPublicKeyFromDer(_der);
