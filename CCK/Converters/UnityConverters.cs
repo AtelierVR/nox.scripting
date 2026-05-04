@@ -53,6 +53,11 @@ namespace Nox.CCK.Scripting.Converters {
 						args.Length > 0
 							? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3))
 							: UnityEngine.Vector3.zero))
+				.AddMethod("distance", (ctx, v, args) =>
+					(object)UnityEngine.Vector3.Distance(v,
+						args.Length > 0
+							? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3))
+							: UnityEngine.Vector3.zero))
 				.SetConstructor((_, args) => new UnityEngine.Vector3(
 					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
 					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f,
@@ -171,6 +176,22 @@ namespace Nox.CCK.Scripting.Converters {
 					setter: (ctx, t, val) => t.localRotation = (UnityEngine.Quaternion)ctx.FromScript(val, typeof(UnityEngine.Quaternion)))
 				.AddProperty("childCount", t => (object)t.childCount)
 				.AddMethod("toString", t => (object)t.ToString())
+				.AddMethod("rotate", (ctx, t, args) => {
+					if (args.Length >= 3) {
+						// rotate(x, y, z [, space])
+						var euler = new UnityEngine.Vector3(
+							Convert.ToSingle(args[0]),
+							Convert.ToSingle(args[1]),
+							Convert.ToSingle(args[2]));
+						var space = args.Length > 3 ? (UnityEngine.Space)Convert.ToInt32(args[3]) : UnityEngine.Space.Self;
+						t.Rotate(euler, space);
+					} else if (args.Length > 0) {
+						// rotate(vector3 [, space])
+						t.Rotate((UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)),
+							args.Length > 1 ? (UnityEngine.Space)Convert.ToInt32(args[1]) : UnityEngine.Space.Self);
+					}
+					return null;
+				})
 				// Transform cannot be constructed from scripts; it must come from C#
 				.SetDefault((Transform)null)
 				.Build();
