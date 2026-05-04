@@ -1,0 +1,17 @@
+{
+    "name": "Nox.Scripting",
+    "rootNamespace": "Nox.Scripting",
+    "references": [
+        "Nox.CCK",
+        "Nox.Sessions"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

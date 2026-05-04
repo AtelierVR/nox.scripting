@@ -1,0 +1,12 @@
+{
+  "name": "nox.scripting",
+  "version": "1.0.0",
+  "displayName": "Nox - Scripting Registry",
+  "description": "Central registry for scripting modules, methods, variables and type converters.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Hactazia",
+    "email": "hactazia@gmail.com",
+    "url": "https://hactazia.fr/"
+  }
+}

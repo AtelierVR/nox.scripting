@@ -1,0 +1,18 @@
+{
+    "name": "Nox.Scripting.Runtime",
+    "rootNamespace": "Nox.Scripting.Runtime",
+    "references": [
+        "Nox.CCK",
+        "Nox.Scripting",
+        "Nox.CCK.Scripting"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

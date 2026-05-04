@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<linker>
+	<assembly fullname="Nox.CCK.Scripting" preserve="all" />
+	<assembly fullname="Nox.Scripting" preserve="all" />
+	<assembly fullname="Nox.Scripting.Runtime" preserve="all" />
+</linker>
