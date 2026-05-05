@@ -26,6 +26,7 @@ namespace Nox.CCK.Scripting {
 	/// </summary>
 	public sealed class ScriptingTypeConverterBuilder<T> {
 		private readonly List<IScriptingTypeBindingDefinition> _bindings = new();
+		private readonly List<IScriptingStaticBindingDefinition> _staticBindings = new();
 		private Func<IScriptingContext, T, object> _toScript;
 		private Func<IScriptingContext, object[], T> _constructor;
 		private IScriptingTypeDefaultDefinition _default;
@@ -150,45 +151,92 @@ namespace Nox.CCK.Scripting {
 
 		// ── Properties ────────────────────────────────────────────────────
 
-		/// <summary>Add a read-only property (value is snapshotted at conversion time).</summary>
-		public ScriptingTypeConverterBuilder<T> AddProperty(NameResolver name, Func<IScriptingContext, T, object> getter) {
-			_bindings.Add(new PropertyDef(name, (ctx, inst) => getter(ctx, (T)inst), null));
+		/// <summary>Add a read-only property (context-aware).</summary>
+		/// <param name="flags">Optional <see cref="PropertyFlags"/> (e.g. <see cref="PropertyFlags.InspectGetter"/>).
+		/// <see cref="PropertyFlags.IsReadOnly"/> is always set automatically for read-only overloads.</param>
+		public ScriptingTypeConverterBuilder<T> AddProperty(NameResolver name, Func<IScriptingContext, T, object> getter, ScriptingTypePropertyFlags flags = ScriptingTypePropertyFlags.None) {
+			_bindings.Add(new PropertyDef(name, (ctx, inst) => getter(ctx, (T)inst), null, flags));
 			return this;
 		}
 
 		/// <summary>Add a read-only property (context-free).</summary>
-		public ScriptingTypeConverterBuilder<T> AddProperty(NameResolver name, Func<T, object> getter) {
-			_bindings.Add(new PropertyDef(name, (_, inst) => getter((T)inst), null));
+		/// <param name="flags">Optional <see cref="PropertyFlags"/>.</param>
+		public ScriptingTypeConverterBuilder<T> AddProperty(NameResolver name, Func<T, object> getter, ScriptingTypePropertyFlags flags = ScriptingTypePropertyFlags.None) {
+			_bindings.Add(new PropertyDef(name, (_, inst) => getter((T)inst), null, flags));
 			return this;
 		}
 
-		/// <summary>Add a live read-write property with getter and setter.</summary>
+		/// <summary>Add a read-write property (context-aware).</summary>
+		/// <param name="flags">Optional <see cref="PropertyFlags"/>. <see cref="PropertyFlags.IsReadOnly"/> is stripped automatically when a setter is provided.</param>
 		public ScriptingTypeConverterBuilder<T> AddProperty(
 			NameResolver                         name,
 			Func<IScriptingContext, T, object>   getter,
-			Action<IScriptingContext, T, object> setter
+			Action<IScriptingContext, T, object> setter,
+			ScriptingTypePropertyFlags           flags = ScriptingTypePropertyFlags.None
 		) {
 			_bindings.Add(new PropertyDef(name,
 				(ctx, inst) => getter(ctx, (T)inst),
-				(ctx, inst, val) => setter(ctx, (T)inst, val)));
+				(ctx, inst, val) => setter(ctx, (T)inst, val),
+				flags));
 			return this;
 		}
 
-		/// <summary>Add a live read-write property (context-free).</summary>
+		/// <summary>Add a read-write property (context-free).</summary>
+		/// <param name="flags">Optional <see cref="PropertyFlags"/>. <see cref="PropertyFlags.IsReadOnly"/> is stripped automatically when a setter is provided.</param>
 		public ScriptingTypeConverterBuilder<T> AddProperty(
-			NameResolver      name,
-			Func<T, object>   getter,
-			Action<T, object> setter
+			NameResolver               name,
+			Func<T, object>            getter,
+			Action<T, object>          setter,
+			ScriptingTypePropertyFlags flags = ScriptingTypePropertyFlags.None
 		) {
 			_bindings.Add(new PropertyDef(name,
 				(_, inst) => getter((T)inst),
-				(_, inst, val) => setter((T)inst, val)));
+				(_, inst, val) => setter((T)inst, val),
+				flags));
+			return this;
+		}
+
+		// ── Static methods / values ──────────────────────────────────────────
+
+		/// <summary>Add a static synchronous method (e.g. <c>Vector3.Distance(a, b)</c>).</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticMethod(NameResolver name, Func<IScriptingContext, object[], object> h) {
+			_staticBindings.Add(new StaticSyncMethodDef(name, h));
+			return this;
+		}
+
+		/// <summary>Add a context-free static synchronous method.</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticMethod(NameResolver name, Func<object[], object> h) {
+			_staticBindings.Add(new StaticSyncMethodDef(name, (_, args) => h(args)));
+			return this;
+		}
+
+		/// <summary>Add a static asynchronous method.</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticAsyncMethod(NameResolver name, Func<IScriptingContext, object[], Task<object>> h) {
+			_staticBindings.Add(new StaticAsyncMethodDef(name, h));
+			return this;
+		}
+
+		/// <summary>Add a context-free static asynchronous method.</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticAsyncMethod(NameResolver name, Func<object[], Task<object>> h) {
+			_staticBindings.Add(new StaticAsyncMethodDef(name, (_, args) => h(args)));
+			return this;
+		}
+
+		/// <summary>Add a static read-only constant value (e.g. <c>Vector3.zero</c>).</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticValue(NameResolver name, Func<object> getter) {
+			_staticBindings.Add(new StaticValueDef(name, _ => getter()));
+			return this;
+		}
+
+		/// <summary>Add a context-aware static read-only value.</summary>
+		public ScriptingTypeConverterBuilder<T> AddStaticValue(NameResolver name, Func<IScriptingContext, object> getter) {
+			_staticBindings.Add(new StaticValueDef(name, getter));
 			return this;
 		}
 
 		/// <summary>Build the converter.</summary>
 		public IScriptingTypeConverter Build()
-			=> new ConverterDef(_toScript, _constructor, _default, _bindings.ToArray());
+			=> new ConverterDef(_toScript, _constructor, _default, _bindings.ToArray(), _staticBindings.ToArray());
 
 		// ── Private implementations ───────────────────────────────────────
 
@@ -213,13 +261,17 @@ namespace Nox.CCK.Scripting {
 		private sealed class PropertyDef : IScriptingTypeBindingPropertyDefinition {
 			public INameResolver Name { get; }
 			public Func<IScriptingContext, object, object> Getter { get; }
-			public bool IsReadOnly
-				=> Setter == null;
 			public Action<IScriptingContext, object, object> Setter { get; }
-			public PropertyDef(INameResolver name, Func<IScriptingContext, object, object> getter, Action<IScriptingContext, object, object> setter) {
+			public ScriptingTypePropertyFlags Flags { get; }
+			public PropertyDef(INameResolver name, Func<IScriptingContext, object, object> getter, Action<IScriptingContext, object, object> setter, ScriptingTypePropertyFlags flags = ScriptingTypePropertyFlags.None) {
 				Name   = name;
 				Getter = getter;
 				Setter = setter;
+				// Setter presence overrides IsReadOnly: strip the flag when a setter is provided,
+				// force it when there is none.
+				Flags = setter == null
+					? flags | ScriptingTypePropertyFlags.IsReadOnly
+					: flags & ~ScriptingTypePropertyFlags.IsReadOnly;
 			}
 		}
 
@@ -227,10 +279,10 @@ namespace Nox.CCK.Scripting {
 			public INameResolver Name
 				=> new NameResolver("default");
 			public Func<IScriptingContext, object, object> Getter { get; }
-			public bool IsReadOnly
-				=> true;
 			public Action<IScriptingContext, object, object> Setter
 				=> null;
+			public ScriptingTypePropertyFlags Flags
+				=> ScriptingTypePropertyFlags.IsReadOnly;
 			public DefaultPropertyDef(Func<IScriptingContext, object> getter) {
 				Getter = (ctx, _) => getter(ctx);
 			}
@@ -245,6 +297,40 @@ namespace Nox.CCK.Scripting {
 			}
 		}
 
+		private sealed class StaticValueDef : IScriptingStaticValueDefinition {
+			public INameResolver Name { get; }
+			// instance is always null for static values
+			public Func<IScriptingContext, object, object> Getter { get; }
+			public Action<IScriptingContext, object, object> Setter
+				=> null;
+			public ScriptingTypePropertyFlags Flags
+				=> ScriptingTypePropertyFlags.IsReadOnly;
+			public StaticValueDef(INameResolver name, Func<IScriptingContext, object> getter) {
+				Name   = name;
+				Getter = (ctx, _) => getter(ctx);
+			}
+		}
+
+		private sealed class StaticSyncMethodDef : IScriptingStaticSyncMethodDefinition {
+			public INameResolver Name { get; }
+			// instance is always null for static methods
+			public Func<IScriptingContext, object, object[], object> Handler { get; }
+			public StaticSyncMethodDef(INameResolver name, Func<IScriptingContext, object[], object> h) {
+				Name    = name;
+				Handler = (ctx, _, args) => h(ctx, args);
+			}
+		}
+
+		private sealed class StaticAsyncMethodDef : IScriptingStaticAsyncMethodDefinition {
+			public INameResolver Name { get; }
+			// instance is always null for static methods
+			public Func<IScriptingContext, object, object[], Task<object>> Handler { get; }
+			public StaticAsyncMethodDef(INameResolver name, Func<IScriptingContext, object[], Task<object>> h) {
+				Name    = name;
+				Handler = (ctx, _, args) => h(ctx, args);
+			}
+		}
+
 		private sealed class ConverterDef : IScriptingTypeConverter {
 			private readonly Func<IScriptingContext, T, object> _toScript;
 			private readonly Func<IScriptingContext, object[], T> _constructor;
@@ -252,6 +338,7 @@ namespace Nox.CCK.Scripting {
 			public Type HandledType
 				=> typeof(T);
 			public IReadOnlyList<IScriptingTypeBindingDefinition> Bindings { get; }
+			public IReadOnlyList<IScriptingStaticBindingDefinition> StaticBindings { get; }
 			public Func<IScriptingContext, object[], object> Constructor
 				=> _constructor != null ? (ctx, args) => (object)_constructor(ctx, args) : null;
 			public IScriptingTypeDefaultDefinition Default { get; }
@@ -260,12 +347,14 @@ namespace Nox.CCK.Scripting {
 				Func<IScriptingContext, T, object>   toScript,
 				Func<IScriptingContext, object[], T> constructor,
 				IScriptingTypeDefaultDefinition      defaultDef,
-				IScriptingTypeBindingDefinition[]    bindings
+				IScriptingTypeBindingDefinition[]    bindings,
+				IScriptingStaticBindingDefinition[]  staticBindings
 			) {
-				_toScript    = toScript;
-				_constructor = constructor;
-				Default      = defaultDef;
-				Bindings     = Array.AsReadOnly(bindings);
+				_toScript      = toScript;
+				_constructor   = constructor;
+				Default        = defaultDef;
+				Bindings       = Array.AsReadOnly(bindings);
+				StaticBindings = Array.AsReadOnly(staticBindings);
 			}
 
 			public object ToScript(IScriptingContext context, object value)

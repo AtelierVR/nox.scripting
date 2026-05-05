@@ -57,12 +57,22 @@ namespace Nox.Scripting {
 	/// A variable (or constant) binding whose value is resolved once at engine-creation
 	/// time via <see cref="Getter"/>.
 	/// </summary>
-	public interface IScriptingVariableDefinition : IScriptingBindingDefinition {
+	public interface IScriptingPropertyDefinition : IScriptingBindingDefinition {
 		/// <summary>Returns the variable's current value for the given context.</summary>
 		Func<IScriptingContext, object> Getter { get; }
 
 		/// <summary>Setter invoked when scripts assign to this variable, or <c>null</c> if read-only.</summary>
 		Action<IScriptingContext, object> Setter { get; }
+	}
+
+	/// <summary>
+	/// A type-converter binding that exports a named class-like object built from an
+	/// <see cref="IScriptingTypeConverter"/> (static methods, static values, constructor via
+	/// <c>TypeName.from(…)</c>). Scripts import it as <c>import { Vector3 } from 'unity'</c>.
+	/// </summary>
+	public interface IScriptingTypeConverterDefinition : IScriptingBindingDefinition {
+		/// <summary>The converter whose static bindings and constructor are exported.</summary>
+		IScriptingTypeConverter Converter { get; }
 	}
 
 	/// <summary>

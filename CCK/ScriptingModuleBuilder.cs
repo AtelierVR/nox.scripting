@@ -101,7 +101,7 @@ namespace Nox.CCK.Scripting {
 			Func<IScriptingContext, object>   getter,
 			Action<IScriptingContext, object> setter = null
 		) {
-			_bindings.Add(new VariableDef(name, getter, setter));
+			_bindings.Add(new PropertyDef(name, getter, setter));
 			return this;
 		}
 
@@ -111,7 +111,7 @@ namespace Nox.CCK.Scripting {
 			Func<object>   getter,
 			Action<object> setter = null
 		) {
-			_bindings.Add(new VariableDef(
+			_bindings.Add(new PropertyDef(
 				name,
 				_ => getter(),
 				setter != null ? (_, v) => setter(v) : (Action<IScriptingContext, object>)null
@@ -121,7 +121,19 @@ namespace Nox.CCK.Scripting {
 
 		/// <summary>Add a static (constant) variable.</summary>
 		public ScriptingModuleBuilder AddVariable(NameResolver name, object value) {
-			_bindings.Add(new VariableDef(name, _ => value, null));
+			_bindings.Add(new PropertyDef(name, _ => value, null));
+			return this;
+		}
+
+		// ── Type converters ──────────────────────────────────────────────────
+
+		/// <summary>
+		/// Export a named type-converter object (static methods + <c>from(…)</c> factory)
+		/// so scripts can do <c>import { Vector3 } from 'unity'</c> and call
+		/// <c>Vector3.distance(a, b)</c> or <c>Vector3.from(x, y, z)</c>.
+		/// </summary>
+		public ScriptingModuleBuilder AddType(NameResolver name, IScriptingTypeConverter converter) {
+			_bindings.Add(new TypeConverterDef(name, converter));
 			return this;
 		}
 
@@ -214,12 +226,12 @@ namespace Nox.CCK.Scripting {
 			}
 		}
 
-		private sealed class VariableDef : IScriptingVariableDefinition {
+		private sealed class PropertyDef : IScriptingPropertyDefinition {
 			public INameResolver Name { get; }
 			public Func<IScriptingContext, object> Getter { get; }
 			public Action<IScriptingContext, object> Setter { get; }
 
-			public VariableDef(
+			public PropertyDef(
 				NameResolver                      name,
 				Func<IScriptingContext, object>   getter,
 				Action<IScriptingContext, object> setter
@@ -244,6 +256,16 @@ namespace Nox.CCK.Scripting {
 				Getter       = getter;
 				Handler      = handler;
 				AsyncHandler = asyncHandler;
+			}
+		}
+
+		private sealed class TypeConverterDef : IScriptingTypeConverterDefinition {
+			public INameResolver Name { get; }
+			public IScriptingTypeConverter Converter { get; }
+
+			public TypeConverterDef(NameResolver name, IScriptingTypeConverter converter) {
+				Name      = name;
+				Converter = converter;
 			}
 		}
 	}

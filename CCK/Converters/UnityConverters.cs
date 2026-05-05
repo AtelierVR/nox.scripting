@@ -1,4 +1,4 @@
-using System;
+using Nox.CCK;
 using Nox.Scripting;
 using UnityEngine;
 
@@ -20,15 +20,29 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector2 =
 			ScriptingTypeConverterBuilder<Vector2>.Create()
-				.AddProperty("x", v => (object)v.x)
-				.AddProperty("y", v => (object)v.y)
+				.AddProperty("x", v => (object)v.x, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("y", v => (object)v.y, flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized", v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized) // returns Vector2 — not safe
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new Vector2(
-					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
-					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f))
+					args.Length > 0 && args[0] != null ? args[0].ToFloat() : 0f,
+					args.Length > 1 && args[1] != null ? args[1].ToFloat() : 0f))
+				.AddStaticValue("zero", () => (object)UnityEngine.Vector2.zero)
+				.AddStaticValue("one", () => (object)UnityEngine.Vector2.one)
+				.AddStaticValue("up", () => (object)UnityEngine.Vector2.up)
+				.AddStaticValue("down", () => (object)UnityEngine.Vector2.down)
+				.AddStaticValue("left", () => (object)UnityEngine.Vector2.left)
+				.AddStaticValue("right", () => (object)UnityEngine.Vector2.right)
+				.AddStaticMethod("distance", (ctx, args) =>
+					(object)UnityEngine.Vector2.Distance(
+						args.Length > 0 ? (UnityEngine.Vector2)ctx.FromScript(args[0], typeof(UnityEngine.Vector2)) : UnityEngine.Vector2.zero,
+						args.Length > 1 ? (UnityEngine.Vector2)ctx.FromScript(args[1], typeof(UnityEngine.Vector2)) : UnityEngine.Vector2.zero))
+				.AddStaticMethod("dot", (ctx, args) =>
+					(object)UnityEngine.Vector2.Dot(
+						args.Length > 0 ? (UnityEngine.Vector2)ctx.FromScript(args[0], typeof(UnityEngine.Vector2)) : UnityEngine.Vector2.zero,
+						args.Length > 1 ? (UnityEngine.Vector2)ctx.FromScript(args[1], typeof(UnityEngine.Vector2)) : UnityEngine.Vector2.zero))
 				.SetDefault(UnityEngine.Vector2.zero)
 				.Build();
 
@@ -36,32 +50,42 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector3 =
 			ScriptingTypeConverterBuilder<Vector3>.Create()
-				.AddProperty("x", v => (object)v.x)
-				.AddProperty("y", v => (object)v.y)
-				.AddProperty("z", v => (object)v.z)
+				.AddProperty("x", v => (object)v.x, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("y", v => (object)v.y, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("z", v => (object)v.z, flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized", v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized) // returns Vector3 — not safe
 				.AddMethod("toString", v => (object)v.ToString())
-				.AddMethod("cross", (ctx, v, args) =>
-					(object)UnityEngine.Vector3.Cross(v,
-						args.Length > 0
-							? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3))
-							: UnityEngine.Vector3.zero))
-				.AddMethod("dot", (ctx, v, args) =>
-					(object)UnityEngine.Vector3.Dot(v,
-						args.Length > 0
-							? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3))
-							: UnityEngine.Vector3.zero))
-				.AddMethod("distance", (ctx, v, args) =>
-					(object)UnityEngine.Vector3.Distance(v,
-						args.Length > 0
-							? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3))
-							: UnityEngine.Vector3.zero))
 				.SetConstructor((_, args) => new UnityEngine.Vector3(
-					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
-					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f,
-					args.Length > 2 && args[2] != null ? Convert.ToSingle(args[2]) : 0f))
+					args.Length > 0 && args[0] != null ? args[0].ToFloat() : 0f,
+					args.Length > 1 && args[1] != null ? args[1].ToFloat() : 0f,
+					args.Length > 2 && args[2] != null ? args[2].ToFloat() : 0f))
+				.AddStaticValue("zero", () => (object)UnityEngine.Vector3.zero)
+				.AddStaticValue("one", () => (object)UnityEngine.Vector3.one)
+				.AddStaticValue("up", () => (object)UnityEngine.Vector3.up)
+				.AddStaticValue("down", () => (object)UnityEngine.Vector3.down)
+				.AddStaticValue("left", () => (object)UnityEngine.Vector3.left)
+				.AddStaticValue("right", () => (object)UnityEngine.Vector3.right)
+				.AddStaticValue("forward", () => (object)UnityEngine.Vector3.forward)
+				.AddStaticValue("back", () => (object)UnityEngine.Vector3.back)
+				.AddStaticMethod("distance", (ctx, args) =>
+					(object)UnityEngine.Vector3.Distance(
+						args.Length > 0 ? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero,
+						args.Length > 1 ? (UnityEngine.Vector3)ctx.FromScript(args[1], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero))
+				.AddStaticMethod("dot", (ctx, args) =>
+					(object)UnityEngine.Vector3.Dot(
+						args.Length > 0 ? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero,
+						args.Length > 1 ? (UnityEngine.Vector3)ctx.FromScript(args[1], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero))
+				.AddStaticMethod("cross", (ctx, args) =>
+					(object)UnityEngine.Vector3.Cross(
+						args.Length > 0 ? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero,
+						args.Length > 1 ? (UnityEngine.Vector3)ctx.FromScript(args[1], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero))
+				.AddStaticMethod("lerp", (ctx, args) =>
+					(object)UnityEngine.Vector3.Lerp(
+						args.Length > 0 ? (UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero,
+						args.Length > 1 ? (UnityEngine.Vector3)ctx.FromScript(args[1], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.zero,
+						args.Length > 2 ? args[2].ToFloat() : 0f))
 				.SetDefault(UnityEngine.Vector3.zero)
 				.Build();
 
@@ -69,19 +93,19 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Vector4 =
 			ScriptingTypeConverterBuilder<Vector4>.Create()
-				.AddProperty("x", v => (object)v.x)
-				.AddProperty("y", v => (object)v.y)
-				.AddProperty("z", v => (object)v.z)
-				.AddProperty("w", v => (object)v.w)
+				.AddProperty("x", v => (object)v.x, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("y", v => (object)v.y, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("z", v => (object)v.z, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("w", v => (object)v.w, flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("magnitude", v => (object)v.magnitude)
 				.AddProperty("sqrMagnitude", v => (object)v.sqrMagnitude)
-				.AddProperty("normalized", v => (object)v.normalized)
+				.AddProperty("normalized", v => (object)v.normalized) // returns Vector4 — not safe
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Vector4(
-					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
-					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f,
-					args.Length > 2 && args[2] != null ? Convert.ToSingle(args[2]) : 0f,
-					args.Length > 3 && args[3] != null ? Convert.ToSingle(args[3]) : 0f))
+					args.Length > 0 && args[0] != null ? args[0].ToFloat() : 0f,
+					args.Length > 1 && args[1] != null ? args[1].ToFloat() : 0f,
+					args.Length > 2 && args[2] != null ? args[2].ToFloat() : 0f,
+					args.Length > 3 && args[3] != null ? args[3].ToFloat() : 0f))
 				.SetDefault(UnityEngine.Vector4.zero)
 				.Build();
 
@@ -89,18 +113,33 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Quaternion =
 			ScriptingTypeConverterBuilder<Quaternion>.Create()
-				.AddProperty("x", v => (object)v.x)
-				.AddProperty("y", v => (object)v.y)
-				.AddProperty("z", v => (object)v.z)
-				.AddProperty("w", v => (object)v.w)
-				.AddProperty("eulerAngles", v => (object)v.eulerAngles)
-				.AddProperty("normalized", v => (object)v.normalized)
+				.AddProperty("x", v => (object)v.x, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("y", v => (object)v.y, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("z", v => (object)v.z, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("w", v => (object)v.w, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("eulerAngles", v => (object)v.eulerAngles) // returns Vector3 — not safe
+				.AddProperty("normalized", v => (object)v.normalized) // returns Quaternion — not safe
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Quaternion(
-					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
-					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f,
-					args.Length > 2 && args[2] != null ? Convert.ToSingle(args[2]) : 0f,
-					args.Length > 3 && args[3] != null ? Convert.ToSingle(args[3]) : 1f))
+					args.Length > 0 && args[0] != null ? args[0].ToFloat() : 0f,
+					args.Length > 1 && args[1] != null ? args[1].ToFloat() : 0f,
+					args.Length > 2 && args[2] != null ? args[2].ToFloat() : 0f,
+					args.Length > 3 && args[3] != null ? args[3].ToFloat() : 1f))
+				.AddStaticValue("identity", () => (object)UnityEngine.Quaternion.identity)
+				.AddStaticMethod("euler", (_, args) =>
+					(object)UnityEngine.Quaternion.Euler(
+						args.Length > 0 ? args[0].ToFloat() : 0f,
+						args.Length > 1 ? args[1].ToFloat() : 0f,
+						args.Length > 2 ? args[2].ToFloat() : 0f))
+				.AddStaticMethod("lerp", (ctx, args) =>
+					(object)UnityEngine.Quaternion.Lerp(
+						args.Length > 0 ? (UnityEngine.Quaternion)ctx.FromScript(args[0], typeof(UnityEngine.Quaternion)) : UnityEngine.Quaternion.identity,
+						args.Length > 1 ? (UnityEngine.Quaternion)ctx.FromScript(args[1], typeof(UnityEngine.Quaternion)) : UnityEngine.Quaternion.identity,
+						args.Length > 2 ? args[2].ToFloat() : 0f))
+				.AddStaticMethod("angleAxis", (ctx, args) =>
+					(object)UnityEngine.Quaternion.AngleAxis(
+						args.Length > 0 ? args[0].ToFloat() : 0f,
+						args.Length > 1 ? (UnityEngine.Vector3)ctx.FromScript(args[1], typeof(UnityEngine.Vector3)) : UnityEngine.Vector3.up))
 				.SetDefault(UnityEngine.Quaternion.identity)
 				.Build();
 
@@ -108,19 +147,33 @@ namespace Nox.CCK.Scripting.Converters {
 
 		public static readonly IScriptingTypeConverter Color =
 			ScriptingTypeConverterBuilder<Color>.Create()
-				.AddProperty("r", v => (object)v.r)
-				.AddProperty("g", v => (object)v.g)
-				.AddProperty("b", v => (object)v.b)
-				.AddProperty("a", v => (object)v.a)
+				.AddProperty("r", v => (object)v.r, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("g", v => (object)v.g, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("b", v => (object)v.b, flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("a", v => (object)v.a, flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("grayscale", v => (object)v.grayscale)
-				.AddProperty("linear", v => (object)v.linear)
-				.AddProperty("gamma", v => (object)v.gamma)
+				.AddProperty("linear", v => (object)v.linear) // returns Color — not safe
+				.AddProperty("gamma", v => (object)v.gamma) // returns Color — not safe
 				.AddMethod("toString", v => (object)v.ToString())
 				.SetConstructor((_, args) => new UnityEngine.Color(
-					args.Length > 0 && args[0] != null ? Convert.ToSingle(args[0]) : 0f,
-					args.Length > 1 && args[1] != null ? Convert.ToSingle(args[1]) : 0f,
-					args.Length > 2 && args[2] != null ? Convert.ToSingle(args[2]) : 0f,
-					args.Length > 3 && args[3] != null ? Convert.ToSingle(args[3]) : 1f))
+					args.Length > 0 && args[0] != null ? args[0].ToFloat() : 0f,
+					args.Length > 1 && args[1] != null ? args[1].ToFloat() : 0f,
+					args.Length > 2 && args[2] != null ? args[2].ToFloat() : 0f,
+					args.Length > 3 && args[3] != null ? args[3].ToFloat() : 1f))
+				.AddStaticValue("red", () => (object)UnityEngine.Color.red)
+				.AddStaticValue("green", () => (object)UnityEngine.Color.green)
+				.AddStaticValue("blue", () => (object)UnityEngine.Color.blue)
+				.AddStaticValue("white", () => (object)UnityEngine.Color.white)
+				.AddStaticValue("black", () => (object)UnityEngine.Color.black)
+				.AddStaticValue("yellow", () => (object)UnityEngine.Color.yellow)
+				.AddStaticValue("cyan", () => (object)UnityEngine.Color.cyan)
+				.AddStaticValue("magenta", () => (object)UnityEngine.Color.magenta)
+				.AddStaticValue("clear", () => (object)UnityEngine.Color.clear)
+				.AddStaticMethod("lerp", (ctx, args) =>
+					(object)UnityEngine.Color.Lerp(
+						args.Length > 0 ? (UnityEngine.Color)ctx.FromScript(args[0], typeof(UnityEngine.Color)) : UnityEngine.Color.black,
+						args.Length > 1 ? (UnityEngine.Color)ctx.FromScript(args[1], typeof(UnityEngine.Color)) : UnityEngine.Color.black,
+						args.Length > 2 ? args[2].ToFloat() : 0f))
 				.SetDefault(UnityEngine.Color.white)
 				.Build();
 
@@ -130,18 +183,21 @@ namespace Nox.CCK.Scripting.Converters {
 			ScriptingTypeConverterBuilder<GameObject>.Create()
 				.AddProperty("name",
 					getter: v => (object)v.name,
-					setter: (v, val) => v.name = val?.ToString() ?? "")
+					setter: (v, val) => v.name = val?.ToString() ?? "",
+					flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("tag",
 					getter: v => (object)v.tag,
-					setter: (v, val) => v.tag = val?.ToString() ?? "Untagged")
+					setter: (v, val) => v.tag = val?.ToString() ?? "Untagged",
+					flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("layer",
 					getter: v => (object)v.layer,
-					setter: (v, val) => v.layer = Convert.ToInt32(val))
-				.AddProperty("activeSelf", v => (object)v.activeSelf)
+					setter: (v, val) => v.layer = val.ToInt(),
+					flags: ScriptingTypePropertyFlags.InspectGetter)
+				.AddProperty("activeSelf", v => (object)v.activeSelf, flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("activeInHierarchy", v => (object)v.activeInHierarchy)
 				.AddMethod("setActive", (v, args) => {
 					if (args.Length > 0)
-						v.SetActive(Convert.ToBoolean(args[0]));
+						v.SetActive(args[0].ToBool());
 					return null;
 				})
 				.AddMethod("toString", v => (object)v.ToString())
@@ -155,10 +211,12 @@ namespace Nox.CCK.Scripting.Converters {
 			ScriptingTypeConverterBuilder<Transform>.Create()
 				.AddProperty("name",
 					getter: v => (object)v.name,
-					setter: (v, val) => v.name = val?.ToString() ?? "")
+					setter: (v, val) => v.name = val?.ToString() ?? "",
+					flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("tag",
 					getter: v => (object)v.tag,
-					setter: (v, val) => v.tag = val?.ToString() ?? "Untagged")
+					setter: (v, val) => v.tag = val?.ToString() ?? "Untagged",
+					flags: ScriptingTypePropertyFlags.InspectGetter)
 				.AddProperty("position",
 					getter: (ctx, t) => (object)t.position,
 					setter: (ctx, t, val) => t.position = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
@@ -180,15 +238,15 @@ namespace Nox.CCK.Scripting.Converters {
 					if (args.Length >= 3) {
 						// rotate(x, y, z [, space])
 						var euler = new UnityEngine.Vector3(
-							Convert.ToSingle(args[0]),
-							Convert.ToSingle(args[1]),
-							Convert.ToSingle(args[2]));
-						var space = args.Length > 3 ? (UnityEngine.Space)Convert.ToInt32(args[3]) : UnityEngine.Space.Self;
+							args[0].ToFloat(),
+							args[1].ToFloat(),
+							args[2].ToFloat());
+						var space = args.Length > 3 ? (UnityEngine.Space)args[3].ToInt() : UnityEngine.Space.Self;
 						t.Rotate(euler, space);
 					} else if (args.Length > 0) {
 						// rotate(vector3 [, space])
 						t.Rotate((UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)),
-							args.Length > 1 ? (UnityEngine.Space)Convert.ToInt32(args[1]) : UnityEngine.Space.Self);
+							args.Length > 1 ? (UnityEngine.Space)args[1].ToInt() : UnityEngine.Space.Self);
 					}
 					return null;
 				})

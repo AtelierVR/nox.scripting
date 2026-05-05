@@ -39,6 +39,12 @@ namespace Nox.Scripting {
 		IScriptingTypeDefaultDefinition Default { get; }
 
 		/// <summary>
+		/// Static bindings (methods and values) exposed directly on the constructor object,
+		/// not on any instance. E.g. <c>Vector3.Distance(a, b)</c>, <c>Vector3.zero</c>.
+		/// </summary>
+		IReadOnlyList<IScriptingStaticBindingDefinition> StaticBindings { get; }
+
+		/// <summary>
 		/// Convert a C# value of <see cref="HandledType"/> to a script-native value
 		/// suitable for the backend that owns the supplied <paramref name="context"/>.
 		/// Only called when <see cref="Bindings"/> is empty.

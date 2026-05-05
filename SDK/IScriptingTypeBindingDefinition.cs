@@ -43,6 +43,29 @@ namespace Nox.Scripting {
 	}
 
 	/// <summary>
+	/// Flags that control the behaviour of a <see cref="IScriptingTypeProperty"/> in script
+	/// backends and tooling. Additional flags may be added in future versions.
+	/// </summary>
+	[System.Flags]
+	public enum ScriptingTypePropertyFlags {
+		/// <summary>No special behaviour.</summary>
+		None = 0,
+
+		/// <summary>
+		/// The getter may be evaluated safely during inspection (e.g. <c>console.log</c>).
+		/// Leave unset for expensive or self-typed properties to avoid infinite recursion.
+		/// </summary>
+		InspectGetter = 1 << 0,
+
+		/// <summary>
+		/// The property is read-only at the scripting level (no assignment allowed).
+		/// When using <see cref="ScriptingTypeConverterBuilder{T}"/>, a non-null setter always
+		/// overrides this flag — the flag is stripped automatically.
+		/// </summary>
+		IsReadOnly = 1 << 1,
+	}
+
+	/// <summary>
 	/// A property binding on a converted type instance.
 	/// <see cref="IScriptingTypeProperty.Getter"/> is required; <see cref="IScriptingTypeProperty.Setter"/> may be <c>null</c>
 	/// for read-only properties.
@@ -52,16 +75,13 @@ namespace Nox.Scripting {
 		Func<IScriptingContext, object, object> Getter { get; }
 
 		/// <summary>
-		/// Whether the property is read-only (i.e. has no setter).
-		/// Backends may use this to determine whether to allow assignment in scripts.
-		/// </summary>
-		bool IsReadOnly { get; }
-
-		/// <summary>
 		/// Sets the property; <c>null</c> if the property is read-only.
 		/// Receives: context, the C# instance, and the new script value.
 		/// </summary>
 		Action<IScriptingContext, object, object> Setter { get; }
+
+		/// <summary>Flags controlling backend and tooling behaviour for this property.</summary>
+		ScriptingTypePropertyFlags Flags { get; }
 	}
 
 	/// <summary>
@@ -109,5 +129,31 @@ namespace Nox.Scripting {
 	/// treat this as a special case and allow it to be either a plain value or a callable.
 	/// </summary>
 	public interface IScriptingTypeDefaultPropertyDefinition : IScriptingTypeDefaultDefinition, IScriptingTypeProperty {
+	}
+
+	/// <summary>Base for all static bindings on a converted type.</summary>
+	public interface IScriptingStaticBindingDefinition {
+		/// <summary>Binding name.</summary>
+		INameResolver Name { get; }
+	}
+
+	/// <summary>
+	/// A static read-only value on a converted type (e.g. <c>Vector3.zero</c>).
+	/// The getter receives the context and returns the value.
+	/// </summary>
+	public interface IScriptingStaticValueDefinition : IScriptingStaticBindingDefinition, IScriptingTypeProperty {
+	}
+
+	/// <summary>
+	/// A static synchronous method on a converted type (e.g. <c>Vector3.Distance(a, b)</c>).
+	/// </summary>
+	public interface IScriptingStaticSyncMethodDefinition : IScriptingStaticBindingDefinition, IScriptingTypeSyncMethod {
+	}
+
+	/// <summary>
+	/// A static asynchronous method on a converted type.
+	/// Backends typically wrap the result in a language-native Promise.
+	/// </summary>
+	public interface IScriptingStaticAsyncMethodDefinition : IScriptingStaticBindingDefinition, IScriptingTypeAsyncMethod {
 	}
 }
