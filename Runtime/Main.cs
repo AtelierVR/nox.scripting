@@ -122,6 +122,10 @@ namespace Nox.Scripting.Runtime {
 			RegisterModule(HashingModule.Module);
 			RegisterModule(CryptoModule.Module);
 			RegisterModule(UnityModule.Module);
+			RegisterModule(ConsoleModule.Module);
+			RegisterModule(BehaviourModule.Module);
+			RegisterModule(BufferModule.Module);
+			RegisterModule(TimeModule.Module);
 		}
 
 		public void OnDisposeMain() {

@@ -31,7 +31,7 @@ namespace Nox.CCK.Scripting.Converters {
 				.SetDefault(Array.Empty<byte>())
 				.Build();
 
-		private static byte[] Encode(string data, string encoding)
+		internal static byte[] Encode(string data, string encoding)
 			=> encoding.ToLower() switch {
 				"utf8"    => System.Text.Encoding.UTF8.GetBytes(data),
 				"ascii"   => System.Text.Encoding.ASCII.GetBytes(data),
@@ -43,7 +43,7 @@ namespace Nox.CCK.Scripting.Converters {
 				_ => throw new NotSupportedException($"Encoding '{encoding}' is not supported"),
 			};
 
-		private static string Decode(byte[] buffer, string encoding)
+		internal static string Decode(byte[] buffer, string encoding)
 			=> encoding.ToLower() switch {
 				"utf8"    => System.Text.Encoding.UTF8.GetString(buffer),
 				"ascii"   => System.Text.Encoding.ASCII.GetString(buffer),
