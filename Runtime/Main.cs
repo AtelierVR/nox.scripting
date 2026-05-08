@@ -44,12 +44,12 @@ namespace Nox.Scripting.Runtime {
 			OnModuleRegistered.Invoke(definition);
 		}
 
-		public void UnregisterModule(INameResolver moduleId) {
-			if (_modules.RemoveAll(m => m.Id == moduleId) <= 0)
+		public void UnregisterModule(IScriptingModuleDefinition definition) {
+			if (_modules.RemoveAll(m => m.Id == definition.Id) <= 0)
 				return;
 			foreach (var backend in _backends)
-				backend.OnModuleUnregistered(moduleId);
-			OnModuleUnregistered.Invoke(moduleId);
+				backend.OnModuleUnregistered(definition.Id);
+			OnModuleUnregistered.Invoke(definition.Id);
 		}
 
 		// ── Converters ───────────────────────────────────────────────────────

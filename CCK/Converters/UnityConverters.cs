@@ -254,6 +254,49 @@ namespace Nox.CCK.Scripting.Converters {
 				.SetDefault((Transform)null)
 				.Build();
 
+		// ── Rigidbody ─────────────────────────────────────────────────────
+
+		public static readonly IScriptingTypeConverter Rigidbody =
+			ScriptingTypeConverterBuilder<Rigidbody>.Create()
+				.AddProperty("linearVelocity",
+					getter: (ctx, rb) => (object)rb.linearVelocity,
+					setter: (ctx, rb, val) => rb.linearVelocity = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
+				.AddProperty("angularVelocity",
+					getter: (ctx, rb) => (object)rb.angularVelocity,
+					setter: (ctx, rb, val) => rb.angularVelocity = (UnityEngine.Vector3)ctx.FromScript(val, typeof(UnityEngine.Vector3)))
+				.AddProperty("mass",
+					getter: rb => (object)rb.mass,
+					setter: (rb, val) => rb.mass = val.ToFloat())
+				.AddProperty("linearDamping",
+					getter: rb => (object)rb.linearDamping,
+					setter: (rb, val) => rb.linearDamping = val.ToFloat())
+				.AddProperty("angularDamping",
+					getter: rb => (object)rb.angularDamping,
+					setter: (rb, val) => rb.angularDamping = val.ToFloat())
+				.AddProperty("isKinematic",
+					getter: rb => (object)rb.isKinematic,
+					setter: (rb, val) => rb.isKinematic = val.ToBool())
+				.AddProperty("useGravity",
+					getter: rb => (object)rb.useGravity,
+					setter: (rb, val) => rb.useGravity = val.ToBool())
+				.AddMethod("addForce", (ctx, rb, args) => {
+					if (args.Length >= 3)
+						rb.AddForce(args[0].ToFloat(), args[1].ToFloat(), args[2].ToFloat());
+					else if (args.Length > 0)
+						rb.AddForce((UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)));
+					return null;
+				})
+				.AddMethod("addTorque", (ctx, rb, args) => {
+					if (args.Length >= 3)
+						rb.AddTorque(args[0].ToFloat(), args[1].ToFloat(), args[2].ToFloat());
+					else if (args.Length > 0)
+						rb.AddTorque((UnityEngine.Vector3)ctx.FromScript(args[0], typeof(UnityEngine.Vector3)));
+					return null;
+				})
+				// Rigidbody cannot be constructed from scripts; it must come from C#
+				.SetDefault((Rigidbody)null)
+				.Build();
+
 		/// <summary>All Unity type converters as a flat array for registration.</summary>
 		public static readonly IScriptingTypeConverter[] All = {
 			Vector2,
@@ -263,6 +306,7 @@ namespace Nox.CCK.Scripting.Converters {
 			Color,
 			GameObject,
 			Transform,
+			Rigidbody,
 		};
 	}
 }

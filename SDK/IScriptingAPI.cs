@@ -20,8 +20,8 @@ namespace Nox.Scripting {
 		/// </summary>
 		void RegisterModule(IScriptingModuleDefinition definition);
 
-		/// <summary>Unregister a module by its <see cref="IScriptingModuleDefinition.Id"/>. All backends are notified.</summary>
-		void UnregisterModule(INameResolver id);
+		/// <summary>Unregister a module definition. All backends are notified.</summary>
+		void UnregisterModule(IScriptingModuleDefinition definition);
 
 		/// <summary>
 		/// Register a type converter. Replaces any existing converter for the same <see cref="IScriptingTypeConverter.HandledType"/>.
