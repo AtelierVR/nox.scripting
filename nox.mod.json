@@ -22,13 +22,9 @@
       "website": "https://hactazia.fr/"
     }
   ],
-  "contributors": [],
-  "relations": [],
   "entrypoints": {
     "main": [
       "Nox.Scripting.Runtime.Main"
     ]
-  },
-  "references": [],
-  "permissions": []
+  }
 }
