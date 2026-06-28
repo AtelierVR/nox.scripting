@@ -17,25 +17,34 @@ namespace Nox.CCK.Scripting.Modules {
 			ScriptingModuleBuilder.Create("buffer")
 				.WithTags("session")
 				.AddMethod("from", (_, args) => {
-					var data     = args.Length > 0 ? args[0]?.ToString() ?? "" : "";
+					if (args.Length == 0) return Array.Empty<byte>();
 					var encoding = args.Length > 1 ? args[1]?.ToString() ?? "utf8" : "utf8";
-					return (object)BufferConverter.Encode(data, encoding);
+					switch (args[0]) {
+						case byte[] b:
+							return b;
+						case object[] arr:
+							return arr.Select(x => x.ToByte()).ToArray();
+						default: {
+							var data = args[0]?.ToString() ?? "";
+							return BufferConverter.Encode(data, encoding);
+						}
+					}
 				})
 				.AddMethod("toString", (_, args) => {
-					if (args.Length == 0) return null;
+					if (args.Length == 0) return "";
 					byte[] buf;
 					switch (args[0]) {
 						case byte[] b:
 							buf = b;
 							break;
 						case object[] arr:
-							buf = arr.Select(x => x != null ? Convert.ToByte(x) : (byte)0).ToArray();
+							buf = arr.Select(x => x.ToByte()).ToArray();
 							break;
 						default:
-							return null;
+							return "";
 					}
 					var encoding = args.Length > 1 ? args[1]?.ToString() ?? "utf8" : "utf8";
-					return (object)BufferConverter.Decode(buf, encoding);
+					return BufferConverter.Decode(buf, encoding);
 				})
 				.Build();
 	}
