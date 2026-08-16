@@ -1,4 +1,5 @@
 using System.Linq;
+using Nox.CCK.Utils;
 using Nox.Scripting;
 using UnityEngine;
 using NoxLogger = Nox.CCK.Utils.Logger;
@@ -39,7 +40,7 @@ namespace Nox.CCK.Scripting.Modules {
 				.Build();
 
 		private static string Tag(GameObject obj)
-			=> obj != null ? $"Script_{obj.GetInstanceID()}" : "Script";
+			=> obj != null ? $"Script_{obj.GetId()}" : "Script";
 
 		private static string Format(object arg, int depth = 0) {
 			if (arg == null) return "null";
