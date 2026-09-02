@@ -5,7 +5,7 @@
     "scripting"
   ],
   "name": "Scripting Registry",
-  "version": "1.0.0",
+  "version": "1.0.x",
   "description": "Central registry for scripting modules, methods, variables and type converters. Enables any mod to expose its API once and have it available across all scripting backends (JavaScript/Jint, Lua/MoonSharp, ...).",
   "license": "GPL-3.0",
   "icon": null,
