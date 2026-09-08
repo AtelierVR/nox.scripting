@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace Nox.Scripting {
 	/// <summary>
@@ -38,8 +38,8 @@ namespace Nox.Scripting {
 	/// Backends typically wrap the result in a language-native Promise.
 	/// </summary>
 	public interface IScriptingTypeAsyncMethod {
-		/// <summary>Async handler: (context, instance, args) → Task&lt;object&gt;.</summary>
-		Func<IScriptingContext, object, object[], Task<object>> Handler { get; }
+		/// <summary>Async handler: (context, instance, args) → UniTask&lt;object&gt;.</summary>
+		Func<IScriptingContext, object, object[], UniTask<object>> Handler { get; }
 	}
 
 	/// <summary>

@@ -2,6 +2,7 @@
     "name": "Nox.CCK.Scripting",
     "rootNamespace": "Nox.CCK.Scripting",
     "references": [
+        "UniTask",
         "Nox.CCK",
         "Nox.Sessions",
         "Nox.Scripting"

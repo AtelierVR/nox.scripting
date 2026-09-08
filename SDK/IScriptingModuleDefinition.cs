@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace Nox.Scripting {
 	/// <summary>
@@ -50,7 +50,7 @@ namespace Nox.Scripting {
 		/// Async handler called on each invocation.
 		/// <para>Return <c>null</c> to resolve the promise with <c>null</c>.</para>
 		/// </summary>
-		Func<IScriptingContext, object[], Task<object>> Handler { get; }
+		Func<IScriptingContext, object[], UniTask<object>> Handler { get; }
 	}
 
 	/// <summary>
@@ -89,6 +89,6 @@ namespace Nox.Scripting {
 		Func<IScriptingContext, object[], object> Handler { get; }
 
 		/// <summary>Non-null when the default export is an async function.</summary>
-		Func<IScriptingContext, object[], Task<object>> AsyncHandler { get; }
+		Func<IScriptingContext, object[], UniTask<object>> AsyncHandler { get; }
 	}
 }

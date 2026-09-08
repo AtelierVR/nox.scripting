@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Nox.Scripting;
 
 namespace Nox.CCK.Scripting {
@@ -78,13 +78,13 @@ namespace Nox.CCK.Scripting {
 		/// Add an asynchronous method. Backends typically wrap the result in a
 		/// language-native Promise.
 		/// </summary>
-		public ScriptingModuleBuilder AddAsyncMethod(NameResolver name, Func<IScriptingContext, object[], Task<object>> handler) {
+		public ScriptingModuleBuilder AddAsyncMethod(NameResolver name, Func<IScriptingContext, object[], UniTask<object>> handler) {
 			_bindings.Add(new AsyncMethodDef(name, handler));
 			return this;
 		}
 
 		/// <summary>Add a context-free asynchronous method.</summary>
-		public ScriptingModuleBuilder AddAsyncMethod(NameResolver name, Func<object[], Task<object>> handler) {
+		public ScriptingModuleBuilder AddAsyncMethod(NameResolver name, Func<object[], UniTask<object>> handler) {
 			_bindings.Add(new AsyncMethodDef(name, (_, args) => handler(args)));
 			return this;
 		}
@@ -173,13 +173,13 @@ namespace Nox.CCK.Scripting {
 		/// Set the module's default export to an async callable. Backends wrap the result
 		/// in a Promise.
 		/// </summary>
-		public ScriptingModuleBuilder SetDefaultAsync(Func<IScriptingContext, object[], Task<object>> handler) {
+		public ScriptingModuleBuilder SetDefaultAsync(Func<IScriptingContext, object[], UniTask<object>> handler) {
 			_bindings.Add(new DefaultDef(null, null, handler));
 			return this;
 		}
 
 		/// <summary>Set the module's default export to a context-free async callable.</summary>
-		public ScriptingModuleBuilder SetDefaultAsync(Func<object[], Task<object>> handler) {
+		public ScriptingModuleBuilder SetDefaultAsync(Func<object[], UniTask<object>> handler) {
 			_bindings.Add(new DefaultDef(null, null, (_, args) => handler(args)));
 			return this;
 		}
@@ -218,9 +218,9 @@ namespace Nox.CCK.Scripting {
 
 		private sealed class AsyncMethodDef : IScriptingAsyncMethodDefinition {
 			public INameResolver Name { get; }
-			public Func<IScriptingContext, object[], Task<object>> Handler { get; }
+			public Func<IScriptingContext, object[], UniTask<object>> Handler { get; }
 
-			public AsyncMethodDef(NameResolver name, Func<IScriptingContext, object[], Task<object>> handler) {
+			public AsyncMethodDef(NameResolver name, Func<IScriptingContext, object[], UniTask<object>> handler) {
 				Name    = name;
 				Handler = handler;
 			}
@@ -246,12 +246,12 @@ namespace Nox.CCK.Scripting {
 			public INameResolver Name { get; } = new NameResolver("default");
 			public Func<IScriptingContext, object> Getter { get; }
 			public Func<IScriptingContext, object[], object> Handler { get; }
-			public Func<IScriptingContext, object[], Task<object>> AsyncHandler { get; }
+			public Func<IScriptingContext, object[], UniTask<object>> AsyncHandler { get; }
 
 			public DefaultDef(
 				Func<IScriptingContext, object>                 getter,
 				Func<IScriptingContext, object[], object>       handler,
-				Func<IScriptingContext, object[], Task<object>> asyncHandler
+				Func<IScriptingContext, object[], UniTask<object>> asyncHandler
 			) {
 				Getter       = getter;
 				Handler      = handler;
