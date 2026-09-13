@@ -4,10 +4,8 @@ using System.Linq;
 using Nox.CCK.Events;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Initializers;
-using Nox.CCK.Scripting;
 using Nox.CCK.Scripting.Converters;
 using Nox.CCK.Scripting.Modules;
-using Nox.Scripting;
 
 namespace Nox.Scripting.Runtime {
 	public class Main : IMainModInitializer, IScriptingAPI {
@@ -126,12 +124,19 @@ namespace Nox.Scripting.Runtime {
 			RegisterModule(BehaviourModule.Module);
 			RegisterModule(BufferModule.Module);
 			RegisterModule(TimeModule.Module);
+			RegisterModule(SchedulerModule.Module);
 		}
 
 		public void OnDisposeMain() {
-			_modules.Clear();
-			_converters.Clear();
+			foreach(var backend in _backends.ToArray())
+				UnregisterBackend(backend);
 			_backends.Clear();
+			foreach(var module in _modules.ToArray())
+				UnregisterModule(module);
+			_modules.Clear();
+			foreach(var converter in _converters.ToArray())
+				UnregisterConverter(converter);
+			_converters.Clear();
 			Instance = null;
 		}
 	}
