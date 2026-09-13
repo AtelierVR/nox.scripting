@@ -46,7 +46,7 @@ namespace Nox.Scripting {
 	/// Flags that control the behaviour of a <see cref="IScriptingTypeProperty"/> in script
 	/// backends and tooling. Additional flags may be added in future versions.
 	/// </summary>
-	[System.Flags]
+	[Flags]
 	public enum ScriptingTypePropertyFlags {
 		/// <summary>No special behaviour.</summary>
 		None = 0,
@@ -67,7 +67,7 @@ namespace Nox.Scripting {
 
 	/// <summary>
 	/// A property binding on a converted type instance.
-	/// <see cref="IScriptingTypeProperty.Getter"/> is required; <see cref="IScriptingTypeProperty.Setter"/> may be <c>null</c>
+	/// <see cref="Getter"/> is required; <see cref="Setter"/> may be <c>null</c>
 	/// for read-only properties.
 	/// </summary>
 	public interface IScriptingTypeProperty {
@@ -82,6 +82,41 @@ namespace Nox.Scripting {
 
 		/// <summary>Flags controlling backend and tooling behaviour for this property.</summary>
 		ScriptingTypePropertyFlags Flags { get; }
+	}
+
+	/// <summary>
+	/// An event binding on a converted type instance. Exposes <c>on</c>/<c>off</c>/<c>once</c>/<c>emit</c>
+	/// (or language-specific equivalents) to scripts. The C# side provides
+	/// <see cref="AddHandler"/>/<see cref="RemoveHandler"/>/<see cref="Emit"/> callbacks; the backend
+	/// wraps them into the appropriate language API.
+	/// </summary>
+	public interface IScriptingTypeEventDefinition : IScriptingTypeBindingDefinition {
+		/// <summary>
+		/// Called by the backend when a script subscribes to this event.
+		/// <para>Parameters: context, the C# instance, and a handler delegate that the</para>
+		/// <para>backend has wrapped from the script function. The C# code must store</para>
+		/// <para>this delegate and invoke it when the event fires.</para></summary>
+		Action<IScriptingContext, object, Action<object[]>> AddHandler { get; }
+
+		/// <summary>
+		/// Called by the backend when a script subscribes with <c>once</c> flag.
+		/// <para>Parameters: context, the C# instance, and a handler delegate.</para>
+		/// <para>The C# code must store this delegate and invoke it exactly once,</para>
+		/// <para>then automatically remove it.</para></summary>
+		Action<IScriptingContext, object, Action<object[]>> AddOnceHandler { get; }
+
+		/// <summary>
+		/// Called by the backend when a script unsubscribes from this event.
+		/// <para>Parameters: context, the C# instance, and the same handler delegate</para>
+		/// <para>that was passed to <see cref="AddHandler"/> or <see cref="AddOnceHandler"/>.</para>
+		/// <para>The C# code must remove it.</para></summary>
+		Action<IScriptingContext, object, Action<object[]>> RemoveHandler { get; }
+
+		/// <summary>
+		/// Called by the backend when a script emits this event programmatically
+		/// (e.g. <c>socket.emit('data', ...)</c>). Only invoked if <see cref="ScriptingTypeEventFlags.AllowEmit"/> is set.
+		/// <para>Parameters: context, the C# instance, and the event arguments array.</para></summary>
+		Action<IScriptingContext, object, object[]> Emit { get; }
 	}
 
 	/// <summary>

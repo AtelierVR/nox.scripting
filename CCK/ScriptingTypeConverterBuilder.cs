@@ -198,6 +198,59 @@ namespace Nox.CCK.Scripting {
 
 		// ── Static methods / values ──────────────────────────────────────────
 
+		/// <summary>Add an event binding. The C# side provides AddHandler/RemoveHandler/AddOnceHandler/Emit callbacks
+		/// that the backend wraps into the appropriate language API (e.g. on/off/once/emit for JS,
+		/// +=/-= for C#, etc.). The handler receives an array of arguments (object[]).
+		/// <para>When a script subscribes via <c>on</c>, <paramref name="addHandler"/> is called with the
+		/// script-wrapped handler. The C# code must store and invoke this delegate when the
+		/// event fires.</para>
+		/// <para>When a script subscribes via <c>once</c>, <paramref name="addOnceHandler"/> is called.
+		/// The C# code must invoke this delegate exactly once and then auto-remove it.</para>
+		/// <para>When a script unsubscribes via <c>off</c>, <paramref name="removeHandler"/> is called with
+		/// the same delegate for removal.</para>
+		/// <para>When a script emits via <c>emit</c> (if <see cref="ScriptingTypeEventFlags.AllowEmit"/>),
+		/// <paramref name="emit"/> is called with the event arguments.</para></summary>
+		/// <param name="name">Event name (e.g. "data", "error", "connected").</param>
+		/// <param name="addHandler">Called when a script subscribes via <c>on</c>. Receives context, instance, and the handler to store.</param>
+		/// <param name="addOnceHandler">Called when a script subscribes via <c>once</c>. Receives context, instance, and the handler to store and invoke once.</param>
+		/// <param name="removeHandler">Called when a script unsubscribes via <c>off</c>. Receives context, instance, and the handler to remove.</param>
+		/// <param name="emit">Called when a script emits via <c>emit</c> (if AllowEmit flag). Receives context, instance, and event arguments.</param>
+		/// <param name="flags">Event behaviour flags (see <see cref="ScriptingTypeEventFlags"/>).</param>
+		public ScriptingTypeConverterBuilder<T> AddEvent(
+			NameResolver                                    name,
+			Action<IScriptingContext, T, Action<object[]>>  addHandler,
+			Action<IScriptingContext, T, Action<object[]>>  addOnceHandler,
+			Action<IScriptingContext, T, Action<object[]>>  removeHandler,
+			Action<IScriptingContext, T, object[]>          emit
+		) {
+			_bindings.Add(new EventDef(name, 
+				(ctx, inst, h) => addHandler(ctx, (T)inst, h),
+				(ctx, inst, h) => addOnceHandler(ctx, (T)inst, h),
+				(ctx, inst, h) => removeHandler(ctx, (T)inst, h),
+				(ctx, inst, args) => emit(ctx, (T)inst, args)
+			));
+			return this;
+		}
+
+		/// <summary>Context-free overload for <see cref="AddEvent"/>.</summary>
+		public ScriptingTypeConverterBuilder<T> AddEvent(
+			NameResolver                     name,
+			Action<T, Action<object[]>>      addHandler,
+			Action<T, Action<object[]>>      addOnceHandler,
+			Action<T, Action<object[]>>      removeHandler,
+			Action<T, object[]>              emit
+		) {
+			_bindings.Add(new EventDef(name,
+				(_, inst, h) => addHandler((T)inst, h),
+				(_, inst, h) => addOnceHandler((T)inst, h),
+				(_, inst, h) => removeHandler((T)inst, h),
+				(_, inst, args) => emit((T)inst, args)
+			));
+			return this;
+		}
+
+		// ── Static methods / values ──────────────────────────────────────────
+
 		/// <summary>Add a static synchronous method (e.g. <c>Vector3.Distance(a, b)</c>).</summary>
 		public ScriptingTypeConverterBuilder<T> AddStaticMethod(NameResolver name, Func<IScriptingContext, object[], object> h) {
 			_staticBindings.Add(new StaticSyncMethodDef(name, h));
@@ -328,6 +381,25 @@ namespace Nox.CCK.Scripting {
 			public StaticAsyncMethodDef(INameResolver name, Func<IScriptingContext, object[], UniTask<object>> h) {
 				Name    = name;
 				Handler = (ctx, _, args) => h(ctx, args);
+			}
+		}
+
+		private sealed class EventDef : IScriptingTypeEventDefinition {
+			public INameResolver Name { get; }
+			public Action<IScriptingContext, object, Action<object[]>> AddHandler { get; }
+			public Action<IScriptingContext, object, Action<object[]>> AddOnceHandler { get; }
+			public Action<IScriptingContext, object, Action<object[]>> RemoveHandler { get; }
+			public Action<IScriptingContext, object, object[]> Emit { get; }
+			public EventDef(INameResolver name,
+				Action<IScriptingContext, object, Action<object[]>> addHandler,
+				Action<IScriptingContext, object, Action<object[]>> addOnceHandler,
+				Action<IScriptingContext, object, Action<object[]>> removeHandler,
+				Action<IScriptingContext, object, object[]> emit) {
+				Name          = name;
+				AddHandler    = addHandler;
+				AddOnceHandler = addOnceHandler;
+				RemoveHandler = removeHandler;
+				Emit          = emit;
 			}
 		}
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Nox.Scripting {
 	/// <summary>
@@ -20,6 +21,11 @@ namespace Nox.Scripting {
 		/// An empty list here means the backend accepts all modules.
 		/// </summary>
 		IReadOnlyList<string> Tags { get; }
+
+		/// <summary>A <see cref="CancellationToken"/> that is cancelled when this backend
+		/// is shut down. Useful for aborting in-flight async work across all
+		/// contexts owned by this backend.</summary>
+		CancellationToken CancellationToken { get; }
 
 		/// <summary>Called when a module is registered or replaced in the registry.</summary>
 		void OnModuleRegistered(IScriptingModuleDefinition definition);

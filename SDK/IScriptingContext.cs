@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Nox.Sessions;
 using UnityEngine;
 
@@ -23,6 +24,11 @@ namespace Nox.Scripting {
 		/// or <c>null</c> if there is no associated GameObject.
 		/// </summary>
 		GameObject ScriptObject { get; }
+
+		/// <summary>A <see cref="CancellationToken"/> that is cancelled when this context
+		/// is disposed or its owning session is destroyed. Use it to abort any
+		/// in-flight async work when the script goes away.</summary>
+		CancellationToken CancellationToken { get; }
 
 		/// <summary>Convert a C# value to a backend-native script value.</summary>
 		object ToScript(object value);
