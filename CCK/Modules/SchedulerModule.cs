@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -57,8 +58,9 @@ namespace Nox.CCK.Scripting.Modules {
 
 				// ── One-shot / repeating callbacks ──────────────────────────
 				.AddMethod("setTimeout", (ctx, args) => {
-					if (args.Length == 0 || args[0] is not Action<object[]> callback) {
-						Logger.LogWarning("setTimeout requires a function as its first argument.", tag: nameof(SchedulerModule));
+					var callback = ExtractCallback(args);
+					if (callback == null) {
+						Logger.LogWarning($"setTimeout requires a function as its first argument ({string.Join(", ", args.Select(a => a.GetType().FullName))}).", tag: nameof(SchedulerModule));
 						return -1;
 					}
 					var ms    = ToMillis(args, 1);
@@ -68,8 +70,10 @@ namespace Nox.CCK.Scripting.Modules {
 					return id;
 				})
 				.AddMethod("setInterval", (ctx, args) => {
-					if (args.Length == 0 || args[0] is not Action<object[]> callback) {
-						Logger.LogWarning("setInterval requires a function as its first argument.", tag: nameof(SchedulerModule));
+                    Logger.LogWarning($"setInterval: args is {string.Join(", ", args.Select(a => a.GetType().FullName))}.", nameof(SchedulerModule));
+					var callback = ExtractCallback(args);
+					if (callback == null) {
+						Logger.LogWarning($"setInterval requires a function as its first argument ({string.Join(", ", args.Select(a => a.GetType().FullName))}).", tag: nameof(SchedulerModule));
 						return -1;
 					}
 					var ms    = Math.Max(1, ToMillis(args, 1));
@@ -81,7 +85,7 @@ namespace Nox.CCK.Scripting.Modules {
 
 				// ── Cancellation ─────────────────────────────────────────────
 				// clearTimeout/clearInterval are interchangeable, exactly like in JS.
-				.AddMethod("clearTimeout",  (ctx, args) => { 
+				.AddMethod("clearTimeout",  (ctx, args) => {
                     ClearTimer(ctx, args); 
                     return null;
                 })
@@ -94,6 +98,26 @@ namespace Nox.CCK.Scripting.Modules {
 					return null;
 				})
 				.Build();
+
+		// ── Callback Extraction ──────────────────────────────────────────────
+
+        private static Action<object[]> ExtractCallback(object[] args) {
+            if (args.Length == 0 || args[0] == null)
+                return null;
+        
+            if (args[0] is Action<object[]> action)
+                return action;
+        
+            // Intercepte directement le type renvoyé par FromValue
+            if (args[0] is Func<object[], object> func)
+                return extraArgs => func(extraArgs ?? Array.Empty<object>());
+        
+            // Fallback pour les autres types de délégués
+            if (args[0] is Delegate del)
+                return extraArgs => del.DynamicInvoke(extraArgs ?? Array.Empty<object>());
+        
+            return null;
+        }
 
 		// ── Timer bookkeeping ────────────────────────────────────────────────
 
