@@ -4,6 +4,7 @@ using System.Linq;
 using Nox.CCK.Events;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Initializers;
+using Nox.CCK.Scripting;
 using Nox.CCK.Scripting.Converters;
 using Nox.CCK.Scripting.Modules;
 
@@ -14,6 +15,12 @@ namespace Nox.Scripting.Runtime {
 		private readonly List<IScriptingModuleDefinition> _modules = new();
 		private readonly List<IScriptingTypeConverter> _converters = new();
 		private readonly List<IScriptingBackend> _backends = new();
+
+		/// <summary>Cache of <see cref="ResolveConverter"/> results, cleared on every registration change.</summary>
+		private readonly Dictionary<Type, IScriptingTypeConverter> _resolved = new();
+
+		/// <summary>Guards <see cref="_resolved"/> (resolution runs on the scripting hot path).</summary>
+		private readonly object _lock = new();
 
 		public IReadOnlyList<IScriptingModuleDefinition> Modules
 			=> _modules;
@@ -57,13 +64,104 @@ namespace Nox.Scripting.Runtime {
 				throw new ArgumentNullException(nameof(converter));
 			_converters.RemoveAll(c => c.HandledType == converter.HandledType);
 			_converters.Add(converter);
+			lock (_lock)
+				_resolved.Clear();
 			foreach (var backend in _backends)
 				backend.OnConverterRegistered(converter);
 			OnConverterRegistered.Invoke(converter);
 		}
 
 		public void UnregisterConverter(IScriptingTypeConverter converter) {
-			_converters.Remove(converter);
+			if (!_converters.Remove(converter))
+				return;
+			lock (_lock)
+				_resolved.Clear();
+		}
+
+		/// <summary>
+		/// Merges every converter whose <see cref="IScriptingTypeConverter.HandledType"/> is assignable
+		/// from <paramref name="type"/>: a value is then exposed with ALL the compatible bindings at once
+		/// (e.g. an <c>IEntity</c> converter and an <c>IPlayer</c> converter both apply to a player).
+		/// The most specific handled type wins for a given binding name; its converter also supplies
+		/// the constructor, the default and the raw conversion.
+		/// </summary>
+		public IScriptingTypeConverter ResolveConverter(Type type) {
+			if (type == null)
+				return null;
+
+			lock (_lock) {
+				if (_resolved.TryGetValue(type, out var cached))
+					return cached;
+			}
+
+			var matches = _converters
+				.Where(c => c.HandledType.IsAssignableFrom(type))
+				.OrderByDescending(c => Specificity(c.HandledType))
+				.ToArray();
+
+			if (matches.Length == 0)
+				return null;
+
+			var resolved = matches.Length == 1
+				? matches[0]
+				: new MergedConverter(matches);
+
+			lock (_lock)
+				_resolved[type] = resolved;
+
+			return resolved;
+		}
+
+		/// <summary>
+		/// Rough specificity score of a handled type: the deeper in the hierarchy (base classes +
+		/// interfaces), the more specific. Used to order the compatible converters.
+		/// </summary>
+		private static int Specificity(Type type) {
+			var score = 0;
+			for (var current = type; current != null; current = current.BaseType)
+				score++;
+			return score + type.GetInterfaces().Length;
+		}
+
+		/// <summary>
+		/// Converter exposing the bindings of several compatible converters at once. Bindings are
+		/// deduplicated by their resolved (camelCase) name, keeping the most specific first.
+		/// </summary>
+		private sealed class MergedConverter : IScriptingTypeConverter {
+			private readonly IScriptingTypeConverter _primary;
+
+			public MergedConverter(IReadOnlyList<IScriptingTypeConverter> converters) {
+				_primary        = converters[0];
+				Bindings        = Merge(converters.SelectMany(c => c.Bindings), b => b.Name);
+				StaticBindings  = Merge(converters.SelectMany(c => c.StaticBindings), b => b.Name);
+			}
+
+			public Type HandledType
+				=> _primary.HandledType;
+
+			public IReadOnlyList<IScriptingTypeBindingDefinition> Bindings { get; }
+
+			public IReadOnlyList<IScriptingStaticBindingDefinition> StaticBindings { get; }
+
+			public Func<IScriptingContext, object[], object> Constructor
+				=> _primary.Constructor;
+
+			public IScriptingTypeDefaultDefinition Default
+				=> _primary.Default;
+
+			public object ToScript(IScriptingContext context, object value)
+				=> _primary.ToScript(context, value);
+
+			private static IReadOnlyList<T> Merge<T>(IEnumerable<T> bindings, Func<T, INameResolver> name) where T : class {
+				var merged = new List<T>();
+				var names  = new HashSet<string>();
+				foreach (var binding in bindings) {
+					var resolved = name(binding).Resolve(NameResolver.camelCaseStyle);
+					if (names.Add(resolved))
+						merged.Add(binding);
+				}
+				return merged;
+			}
 		}
 
 		// ── Backends ─────────────────────────────────────────────────────────
@@ -137,6 +235,8 @@ namespace Nox.Scripting.Runtime {
 			foreach(var converter in _converters.ToArray())
 				UnregisterConverter(converter);
 			_converters.Clear();
+			lock (_lock)
+				_resolved.Clear();
 			Instance = null;
 		}
 	}

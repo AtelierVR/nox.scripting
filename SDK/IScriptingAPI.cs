@@ -33,6 +33,20 @@ namespace Nox.Scripting {
 		void UnregisterConverter(IScriptingTypeConverter converter);
 
 		/// <summary>
+		/// Resolve the converter to use for a value of <paramref name="type"/>.
+		/// <para>
+		/// Every registered converter whose <see cref="IScriptingTypeConverter.HandledType"/> is
+		/// assignable from <paramref name="type"/> is compatible with that value. When several are
+		/// compatible, their bindings are merged into a single converter: the most specific handled
+		/// type wins for a given binding name, and the most specific converter supplies
+		/// <see cref="IScriptingTypeConverter.Constructor"/>, <see cref="IScriptingTypeConverter.Default"/>
+		/// and <see cref="IScriptingTypeConverter.ToScript"/>.
+		/// </para>
+		/// Returns <c>null</c> when no registered converter handles the type.
+		/// </summary>
+		IScriptingTypeConverter ResolveConverter(Type type);
+
+		/// <summary>
 		/// Register a scripting backend. The backend is immediately notified of all already-registered modules and converters.
 		/// </summary>
 		void RegisterBackend(IScriptingBackend backend);
