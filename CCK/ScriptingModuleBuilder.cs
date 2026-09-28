@@ -95,6 +95,13 @@ namespace Nox.CCK.Scripting {
 		/// Add a variable whose value is resolved once per engine instance via
 		/// <paramref name="getter"/>. Optionally provide a <paramref name="setter"/>
 		/// for writable variables.
+		/// <para>
+		/// Scripts must read it through the module namespace
+		/// (<c>import players from 'players'; players.all</c>), which keeps a live getter: a named
+		/// import (<c>import { all } from 'players'</c>) copies the value when the module is evaluated,
+		/// so a variable that changes afterwards (a session, the players, ...) would stay stale.
+		/// Named imports are for methods and types.
+		/// </para>
 		/// </summary>
 		public ScriptingModuleBuilder AddVariable(
 			NameResolver                      name,
