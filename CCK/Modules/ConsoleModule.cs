@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text;
 using Nox.CCK.Utils;
 using Nox.Scripting;
 using UnityEngine;
@@ -18,26 +19,46 @@ namespace Nox.CCK.Scripting.Modules {
 				.WithTags("session")
 				.AddMethod("log", (ctx, args) => {
 					NoxLogger.Log(
-						string.Join(" ", args.Select(Format)),
+						BuildMessage(args),
 						ctx.ScriptObject,
 						Tag(ctx.ScriptObject));
 					return null;
 				})
 				.AddMethod("warn", (ctx, args) => {
 					NoxLogger.LogWarning(
-						string.Join(" ", args.Select(Format)),
+						BuildMessage(args),
 						ctx.ScriptObject,
 						Tag(ctx.ScriptObject));
 					return null;
 				})
 				.AddMethod("error", (ctx, args) => {
 					NoxLogger.LogError(
-						string.Join(" ", args.Select(Format)),
+						BuildMessage(args),
 						ctx.ScriptObject,
 						Tag(ctx.ScriptObject));
 					return null;
 				})
 				.Build();
+
+		/// <summary>
+		/// Builds the log line without the LINQ pipeline (<c>Select</c> + <c>string.Join</c>
+		/// allocate an iterator and two collections per call). Scripts that log every frame sit on
+		/// this path, and the single-argument case — by far the most common — allocates nothing extra.
+		/// </summary>
+		private static string BuildMessage(object[] args) {
+			if (args == null || args.Length == 0)
+				return string.Empty;
+			if (args.Length == 1)
+				return Format(args[0]);
+
+			var builder = new StringBuilder();
+			for (var i = 0; i < args.Length; i++) {
+				if (i > 0)
+					builder.Append(' ');
+				builder.Append(Format(args[i]));
+			}
+			return builder.ToString();
+		}
 
 		private static string Tag(GameObject obj)
 			=> obj != null ? $"Script_{obj.GetId()}" : "Script";

@@ -70,7 +70,6 @@ namespace Nox.CCK.Scripting.Modules {
 					return id;
 				})
 				.AddMethod("setInterval", (ctx, args) => {
-                    Logger.LogWarning($"setInterval: args is {string.Join(", ", args.Select(a => a.GetType().FullName))}.", nameof(SchedulerModule));
 					var callback = ExtractCallback(args);
 					if (callback == null) {
 						Logger.LogWarning($"setInterval requires a function as its first argument ({string.Join(", ", args.Select(a => a.GetType().FullName))}).", tag: nameof(SchedulerModule));
