@@ -1,7 +1,8 @@
-{
+﻿{
     "name": "Nox.Scripting",
     "rootNamespace": "Nox.Scripting",
     "references": [
+        "Nox.CCK.Assets",
         "UniTask",
         "Nox.CCK",
         "Nox.Sessions"

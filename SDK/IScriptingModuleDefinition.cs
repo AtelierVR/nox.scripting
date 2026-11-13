@@ -68,7 +68,7 @@ namespace Nox.Scripting {
 	/// <summary>
 	/// A type-converter binding that exports a named class-like object built from an
 	/// <see cref="IScriptingTypeConverter"/> (static methods, static values, constructor via
-	/// <c>TypeName.from(…)</c>). Scripts import it as <c>import { Vector3 } from 'unity'</c>.
+	/// <c>TypeName.from(...)</c>). Scripts import it as <c>import { Vector3 } from 'unity'</c>.
 	/// </summary>
 	public interface IScriptingTypeConverterDefinition : IScriptingBindingDefinition {
 		/// <summary>The converter whose static bindings and constructor are exported.</summary>

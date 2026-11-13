@@ -135,7 +135,7 @@ namespace Nox.CCK.Scripting {
 		// ── Type converters ──────────────────────────────────────────────────
 
 		/// <summary>
-		/// Export a named type-converter object (static methods + <c>from(…)</c> factory)
+		/// Export a named type-converter object (static methods + <c>from(...)</c> factory)
 		/// so scripts can do <c>import { Vector3 } from 'unity'</c> and call
 		/// <c>Vector3.distance(a, b)</c> or <c>Vector3.from(x, y, z)</c>.
 		/// </summary>
