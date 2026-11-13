@@ -1,5 +1,6 @@
 using Nox.Scripting;
 using UnityEngine;
+using Nox.CCK.Utils;
 
 namespace Nox.CCK.Scripting.Modules {
 	/// <summary>
@@ -13,10 +14,10 @@ namespace Nox.CCK.Scripting.Modules {
 		public static readonly IScriptingModuleDefinition Module =
 			ScriptingModuleBuilder.Create("behaviour")
 				.WithTags("session")
-				.AddVariable("gameObject", ctx => (object)ctx.ScriptObject)
-				.AddVariable("transform",  ctx => (object)ctx.ScriptObject?.transform)
-				.AddVariable("rigidbody",  ctx => (object)ctx.ScriptObject?.GetComponent<Rigidbody>())
-				.AddVariable("id",         ctx => (object)(ctx.ScriptObject?.GetInstanceID() ?? 0))
+				.AddVariable("gameObject", ctx => ctx.ScriptObject)
+				.AddVariable("transform",  ctx => ctx.ScriptObject?.transform)
+				.AddVariable("rigidbody",  ctx => ctx.ScriptObject?.GetComponent<Rigidbody>())
+				.AddVariable("id",         ctx => ctx.ScriptObject?.GetId() ?? 0)
 				.Build();
 	}
 }
